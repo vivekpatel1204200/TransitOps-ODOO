@@ -19,7 +19,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ORIGINS
-        value: https://transitops-frontend.onrender.com
+        value: https://transitops-frontend-njw2.onrender.com
 
   - type: web
     name: transitops-frontend
@@ -28,7 +28,7 @@ services:
     staticPublishPath: ./frontend/dist
     envVars:
       - key: VITE_API_URL
-        value: https://transitops-backend.onrender.com
+        value: https://transitops-backend-ojzt.onrender.com
     routes:
       - type: rewrite
         source: /*
