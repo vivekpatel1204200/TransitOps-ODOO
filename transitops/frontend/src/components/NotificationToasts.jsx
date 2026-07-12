@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, X } from "lucide-react";
+import { WS_URL } from "../api/client";
 
 export default function NotificationToasts() {
   const [toasts, setToasts] = useState([]);
@@ -10,7 +11,7 @@ export default function NotificationToasts() {
     if (!token) return;
 
     const connect = () => {
-      const ws = new WebSocket(`ws://localhost:8000/ws/events?token=${token}`);
+      const ws = new WebSocket(`${WS_URL}/ws/events?token=${token}`);
       wsRef.current = ws;
       ws.onmessage = (evt) => {
         try {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
+import { WS_URL } from "../api/client";
 
 // fix default marker icon paths for Vite bundling
 delete L.Icon.Default.prototype._getIconUrl;
@@ -21,7 +22,7 @@ export default function LiveMap() {
   const wsRef = useRef(null);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000/ws/tracking");
+    const ws = new WebSocket(`${WS_URL}/ws/tracking`);
     wsRef.current = ws;
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);

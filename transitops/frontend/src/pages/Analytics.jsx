@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import api from "../api/client";
+import api, { API_URL } from "../api/client";
 
 export default function Analytics() {
   const [perf, setPerf] = useState([]);
@@ -14,7 +14,7 @@ export default function Analytics() {
   }, []);
 
   const exportCsv = () => {
-    window.open("http://localhost:8000/analytics/export/csv", "_blank");
+    window.open(`${API_URL}/analytics/export/csv`, "_blank");
   };
 
   return (

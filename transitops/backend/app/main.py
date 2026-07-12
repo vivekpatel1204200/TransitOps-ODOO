@@ -1,4 +1,5 @@
 import asyncio
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,9 +16,14 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="TransitOps API")
 
+# CORS_ORIGINS should be a comma-separated list, e.g.
+# "http://localhost:5173,https://transitops-frontend.onrender.com"
+_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173")
+allowed_origins = [o.strip() for o in _origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
