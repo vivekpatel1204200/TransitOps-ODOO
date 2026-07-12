@@ -9,6 +9,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+from sqlalchemy import Index
+
 
 
 def gen_uuid():
@@ -51,8 +53,8 @@ class User(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(RoleEnum), nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
@@ -147,3 +149,7 @@ class Expense(Base):
     amount = Column(Float, nullable=False)
     date = Column(DateTime, default=datetime.utcnow)
     notes = Column(Text, nullable=True)
+
+#after all classes are defined, at bottom of file:
+Index("ix_vehicle_status_type", Vehicle.status, Vehicle.type)
+Index("ix_driver_status_expiry", Driver.status, Driver.license_expiry_date)
