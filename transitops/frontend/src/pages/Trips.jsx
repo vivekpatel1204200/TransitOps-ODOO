@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { Plus, Route as RouteIcon } from "lucide-react";
 import api from "../api/client";
 
 const STATUS_COLORS = {
-  Draft: "bg-gray-200 text-gray-700",
-  Dispatched: "bg-blue-100 text-blue-700",
-  Completed: "bg-green-100 text-green-700",
-  Cancelled: "bg-red-100 text-red-700",
+  Draft: "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
+  Dispatched: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  Completed: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  Cancelled: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 };
 
 export default function Trips() {
@@ -65,40 +66,45 @@ export default function Trips() {
     }
   };
 
+  const inputCls = "border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 dark:bg-gray-700 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm";
+
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Trip Management</h1>
+      <div className="flex items-center gap-2 mb-6">
+        <RouteIcon className="text-brand-600" size={22} />
+        <h1 className="text-2xl font-display font-bold">Trip Management</h1>
+      </div>
 
-      <form onSubmit={submit} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-        <input required placeholder="Source" className="border rounded p-2 dark:bg-gray-700 dark:border-gray-600"
+      <form onSubmit={submit} className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <input required placeholder="Source" className={inputCls}
           value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} />
-        <input required placeholder="Destination" className="border rounded p-2 dark:bg-gray-700 dark:border-gray-600"
+        <input required placeholder="Destination" className={inputCls}
           value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} />
-        <select required className="border rounded p-2 dark:bg-gray-700 dark:border-gray-600" value={form.vehicle_id}
+        <select required className={inputCls} value={form.vehicle_id}
           onChange={(e) => setForm({ ...form, vehicle_id: e.target.value })}>
           <option value="">Select Vehicle</option>
           {vehicles.map((v) => <option key={v.id} value={v.id}>{v.registration_number} (max {v.max_load_capacity_kg}kg)</option>)}
         </select>
-        <select required className="border rounded p-2 dark:bg-gray-700 dark:border-gray-600" value={form.driver_id}
+        <select required className={inputCls} value={form.driver_id}
           onChange={(e) => setForm({ ...form, driver_id: e.target.value })}>
           <option value="">Select Driver</option>
           {drivers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
-        <input required type="number" placeholder="Cargo Weight (kg)" className="border rounded p-2 dark:bg-gray-700 dark:border-gray-600"
+        <input required type="number" placeholder="Cargo Weight (kg)" className={inputCls}
           value={form.cargo_weight_kg} onChange={(e) => setForm({ ...form, cargo_weight_kg: e.target.value })} />
-        <input required type="number" placeholder="Planned Distance (km)" className="border rounded p-2 dark:bg-gray-700 dark:border-gray-600"
+        <input required type="number" placeholder="Planned Distance (km)" className={inputCls}
           value={form.planned_distance_km} onChange={(e) => setForm({ ...form, planned_distance_km: e.target.value })} />
-        <input type="number" placeholder="Revenue (₹)" className="border rounded p-2 dark:bg-gray-700 dark:border-gray-600"
+        <input type="number" placeholder="Revenue (₹)" className={inputCls}
           value={form.revenue} onChange={(e) => setForm({ ...form, revenue: e.target.value })} />
-        <button className="col-span-2 md:col-span-4 bg-blue-600 text-white rounded p-2 font-medium hover:bg-blue-700">
-          + Create Trip (Draft)
+        <button className="col-span-2 md:col-span-4 flex items-center justify-center gap-1.5 bg-brand-600 text-white rounded-lg p-2.5 font-medium hover:bg-brand-700 transition-colors">
+          <Plus size={16} /> Create Trip (Draft)
         </button>
         {error && <div className="col-span-4 text-red-600 text-sm">{error}</div>}
       </form>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-x-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-100 dark:bg-gray-700 text-left">
+          <thead className="bg-gray-50 dark:bg-gray-700/50 text-left text-gray-500 dark:text-gray-400 uppercase text-xs tracking-wide">
             <tr>
               <th className="p-3">Route</th><th className="p-3">Cargo</th><th className="p-3">Distance</th>
               <th className="p-3">Status</th><th className="p-3">Actions</th>
@@ -106,15 +112,15 @@ export default function Trips() {
           </thead>
           <tbody>
             {trips.map((t) => (
-              <tr key={t.id} className="border-t dark:border-gray-700">
+              <tr key={t.id} className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30">
                 <td className="p-3">{t.source} → {t.destination}</td>
                 <td className="p-3">{t.cargo_weight_kg} kg</td>
                 <td className="p-3">{t.planned_distance_km} km</td>
-                <td className="p-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[t.status]}`}>{t.status}</span></td>
+                <td className="p-3"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[t.status]}`}>{t.status}</span></td>
                 <td className="p-3 space-x-2">
                   {t.status === "Draft" && (
                     <>
-                      <button onClick={() => dispatch(t.id)} className="text-blue-600 text-xs font-semibold hover:underline">Dispatch</button>
+                      <button onClick={() => dispatch(t.id)} className="text-brand-600 text-xs font-semibold hover:underline">Dispatch</button>
                       <button onClick={() => cancel(t.id)} className="text-red-600 text-xs font-semibold hover:underline">Cancel</button>
                     </>
                   )}
