@@ -49,13 +49,18 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(User).filter(User.email == email).first()
     if user is None:
         raise credentials_exception
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account is deactivated")
     return user
 
 
 def require_roles(*allowed_roles: str):
+    """Dependency factory — use as: Depends(require_roles('fleet_manager'))"""
     def role_checker(user: User = Depends(get_current_user)) -> User:
-        if user.role not in allowed_roles:
-            raise HTTPException(status_code=403, detail="Not enough permissions")
+        if user.role.value not in allowed_roles and user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"This action requires one of these roles: {', '.join(allowed_roles)}",
+            )
         return user
-
     return role_checker
