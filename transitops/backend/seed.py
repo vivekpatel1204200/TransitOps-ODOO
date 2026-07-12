@@ -30,16 +30,41 @@ def reg_number():
 
 def seed_users():
     users = [
-        ("Ravi Patel", "manager@transitops.in", "fleet_manager"),
-        ("Priya Shah", "driver@transitops.in", "driver"),
-        ("Amit Mehta", "safety@transitops.in", "safety_officer"),
-        ("Neha Joshi", "finance@transitops.in", "financial_analyst"),
+        ("Ravi Patel", "manager@transitops.in", "fleet_manager", "+91 98250 11111"),
+        ("Priya Shah", "driver@transitops.in", "driver", "+91 98250 22222"),
+        ("Amit Mehta", "safety@transitops.in", "safety_officer", "+91 98250 33333"),
+        ("Neha Joshi", "finance@transitops.in", "financial_analyst", "+91 98250 44444"),
     ]
-    for name, email, role in users:
+    for name, email, role, phone in users:
         if not db.query(User).filter(User.email == email).first():
-            db.add(User(name=name, email=email, hashed_password=hash_password("password123"), role=role))
+            db.add(User(name=name, email=email, phone=phone,
+                         hashed_password=hash_password("password123"), role=role, is_active=True))
     db.commit()
     print("Seeded users. Login with any of the above emails, password123")
+
+
+def link_demo_driver_account():
+    """So the seeded driver@transitops.in login has a real Driver profile
+    (trips, safety score, license) to show on the Driver dashboard."""
+    user = db.query(User).filter(User.email == "driver@transitops.in").first()
+    if not user or user.driver_id:
+        return
+    priya = Driver(
+        name="Priya Shah",
+        license_number="GJ01PRIYA001",
+        license_category="HMV",
+        license_expiry_date=datetime.utcnow() + timedelta(days=45),
+        contact_number="+91 98250 22222",
+        safety_score=92.5,
+        status=DriverStatus.available,
+    )
+    db.add(priya)
+    db.commit()
+    db.refresh(priya)
+    user.driver_id = priya.id
+    db.commit()
+    print("Linked driver@transitops.in to a real Driver profile (Priya Shah).")
+    return priya
 
 
 def seed_vehicles(n=15):
@@ -137,5 +162,9 @@ if __name__ == "__main__":
     seed_users()
     vehicles = seed_vehicles()
     drivers = seed_drivers()
+    priya = link_demo_driver_account()
+    if priya:
+        drivers.append(priya)
     seed_trips_maintenance_fuel(vehicles, drivers)
     print("\n✅ Seeding complete. Backend has rich demo data now.")
+    print("   Driver dashboard demo login: driver@transitops.in / password123 (linked to Priya Shah)")

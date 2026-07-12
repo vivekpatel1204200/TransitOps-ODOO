@@ -9,8 +9,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
-from sqlalchemy import Index
-
 
 
 def gen_uuid():
@@ -51,10 +49,18 @@ class User(Base):
     id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False, index=True)
+    phone = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(RoleEnum), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    # Optional link from a "driver" role account to their operational Driver record,
+    # so a real driver login can see their own trips/safety score.
+    driver_id = Column(UUID(as_uuid=False), ForeignKey("drivers.id"), nullable=True)
+    last_login = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    driver = relationship("Driver", foreign_keys=[driver_id])
+
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
@@ -140,6 +146,19 @@ class FuelLog(Base):
     vehicle = relationship("Vehicle", back_populates="fuel_logs")
 
 
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    type = Column(String, nullable=False)  # trip_dispatched, trip_completed, maintenance_alert, fuel_anomaly, license_expiring
+    title = Column(String, nullable=False)
+    message = Column(String, nullable=False)
+    severity = Column(String, default="info")  # info, warning, critical
+    audience_role = Column(String, nullable=True)  # None = everyone, else restrict to a role
+    payload_json = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class Expense(Base):
     __tablename__ = "expenses"
 
@@ -149,7 +168,3 @@ class Expense(Base):
     amount = Column(Float, nullable=False)
     date = Column(DateTime, default=datetime.utcnow)
     notes = Column(Text, nullable=True)
-
-#after all classes are defined, at bottom of file:
-Index("ix_vehicle_status_type", Vehicle.status, Vehicle.type)
-Index("ix_driver_status_expiry", Driver.status, Driver.license_expiry_date)

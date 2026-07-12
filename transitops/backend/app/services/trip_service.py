@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.models import Trip, Vehicle, Driver, VehicleStatus, DriverStatus, TripStatus
+from app.services.notify_service import notify
 
 
 def create_trip(db: Session, payload) -> Trip:
@@ -31,6 +32,12 @@ def create_trip(db: Session, payload) -> Trip:
     db.add(trip)
     db.commit()
     db.refresh(trip)
+
+    notify(
+        db, "trip_created", "New trip drafted",
+        f"{trip.source} → {trip.destination} queued for dispatch.",
+        severity="info", audience_role="fleet_manager", data={"trip_id": trip.id},
+    )
     return trip
 
 
@@ -57,6 +64,12 @@ def dispatch_trip(db: Session, trip_id: str) -> Trip:
 
     db.commit()
     db.refresh(trip)
+
+    notify(
+        db, "trip_dispatched", "Trip dispatched",
+        f"{trip.source} → {trip.destination} is now on the road.",
+        severity="info", data={"trip_id": trip.id, "vehicle_id": vehicle.id, "driver_id": driver.id},
+    )
     return trip
 
 
@@ -81,6 +94,12 @@ def complete_trip(db: Session, trip_id: str, actual_distance_km: float, fuel_con
 
     db.commit()
     db.refresh(trip)
+
+    notify(
+        db, "trip_completed", "Trip completed",
+        f"{trip.source} → {trip.destination} finished — {actual_distance_km} km, ₹{trip.revenue} revenue.",
+        severity="info", data={"trip_id": trip.id},
+    )
     return trip
 
 

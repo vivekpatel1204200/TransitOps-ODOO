@@ -6,6 +6,7 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.models import MaintenanceLog, Vehicle, VehicleStatus
 from app.models.schemas import MaintenanceCreate, MaintenanceOut
+from app.services.notify_service import notify
 
 router = APIRouter(prefix="/maintenance", tags=["maintenance"])
 
@@ -29,6 +30,12 @@ def create_maintenance(payload: MaintenanceCreate, db: Session = Depends(get_db)
     vehicle.status = VehicleStatus.in_shop
     db.commit()
     db.refresh(log)
+
+    notify(
+        db, "maintenance_alert", "Vehicle sent to shop",
+        f"{vehicle.registration_number} is now In Shop — {log.description} (₹{log.cost}).",
+        severity="warning", data={"vehicle_id": vehicle.id, "log_id": log.id},
+    )
     return log
 
 
@@ -51,4 +58,10 @@ def close_maintenance(log_id: str, db: Session = Depends(get_db), user=Depends(g
 
     db.commit()
     db.refresh(log)
+
+    notify(
+        db, "maintenance_closed", "Vehicle back in service",
+        f"{vehicle.registration_number} maintenance closed and is available again.",
+        severity="info", data={"vehicle_id": vehicle.id, "log_id": log.id},
+    )
     return log

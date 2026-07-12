@@ -9,6 +9,8 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     role: str
+    phone: Optional[str] = None
+    driver_id: Optional[str] = None  # only meaningful when role == "driver"
 
 
 class UserOut(BaseModel):
@@ -16,6 +18,9 @@ class UserOut(BaseModel):
     name: str
     email: str
     role: str
+    phone: Optional[str] = None
+    driver_id: Optional[str] = None
+    is_active: bool = True
 
     class Config:
         from_attributes = True

@@ -4,8 +4,9 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.models import FuelLog
+from app.models.models import FuelLog, Vehicle
 from app.models.schemas import FuelCreate, FuelOut
+from app.services.notify_service import notify
 
 router = APIRouter(prefix="/fuel", tags=["fuel"])
 
@@ -36,4 +37,13 @@ def create_fuel_log(payload: FuelCreate, db: Session = Depends(get_db), user=Dep
     db.add(log)
     db.commit()
     db.refresh(log)
+
+    if is_anomaly:
+        vehicle = db.query(Vehicle).filter(Vehicle.id == payload.vehicle_id).first()
+        reg = vehicle.registration_number if vehicle else payload.vehicle_id
+        notify(
+            db, "fuel_anomaly", "Fuel cost anomaly detected",
+            f"Refuel for {reg} (₹{payload.cost} for {payload.liters}L) is statistically abnormal — possible fraud or leak.",
+            severity="critical", audience_role="financial_analyst", data={"vehicle_id": payload.vehicle_id, "log_id": log.id},
+        )
     return log
